@@ -45,6 +45,7 @@ class ContainerWidet extends StatelessWidget {
          onLongPress: (){
            num.num++;
            num.num++;
+           num.num++;
            print(num.num);
          },
          //둥글게 만들어주기
