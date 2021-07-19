@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -21,7 +22,10 @@ class _HomePageState extends State<HomePage> {
   String appid = "appid=e6cd2ed81cc007e3087a551394dfeee3&";
   String units = "units=metric";
   var background = Color(0xFFB1D1CF);
-
+  DateFormat formatter = DateFormat('H시 m분 s초');
+  var textground =  Color(0xFFB1D1CF);
+  String image = "";
+  DateFormat sun = DateFormat('H시 m분');
 
   void permission() async {
     await Geolocator.requestPermission();
@@ -51,11 +55,17 @@ class _HomePageState extends State<HomePage> {
 
     if(weatherData['main']['temp']<22){
       background =Color(0xFFB1D1CF);
+      image = "images/cold_mountain.png";
+      textground = Color(0xFF9DBBB9);
       print('cold');
     }else{
       background = Color(0xFFF5CE8B);
+      image = "images/hot_mountain.png";
+      textground = Color(0xFFE5AB48);
       print('hot');
     }
+
+
     return weatherData;
   }
 
@@ -153,9 +163,13 @@ class _HomePageState extends State<HomePage> {
           child: Container(
             padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
             child: Column(
+
                 children: [
+
               Row(
+
                 children: [
+
 
                   IconButton(
                     onPressed: () {
@@ -164,7 +178,7 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(Icons.menu),
                   ),
                   Spacer(),
-                  Text('Weatjer Apps'),
+                  Text('Weather Apps',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 25,color: background),),
                   Spacer(),
                   gps == true
                       ? IconButton(
@@ -196,7 +210,6 @@ class _HomePageState extends State<HomePage> {
                      children: [
 
                        SizedBox(
-
                          height: 40,
                        ),
                        Text("${snapshot.data['weather'][0]['main']}",
@@ -246,7 +259,103 @@ class _HomePageState extends State<HomePage> {
                              ],
                            )
                          ],
-                       )
+                       ),
+                       
+                       //step4
+                       Image.network('http://openweathermap.org/img/wn/'+weatherData['weather'][0]['icon']+'@2x.png'),
+                       //이미지 위치와 화면의 너비만큼 이미지구성
+                      Image.asset(image,width: MediaQuery.of(context).size.width),
+
+                       //step5
+                       Container(
+                         padding:  EdgeInsets.only(right: 10,top: 10),
+                         alignment: Alignment.centerRight,
+                         child: Text('Last Update: ${formatter.format(DateTime.now())}'),
+                       ),
+                       Container(
+                         width: MediaQuery.of(context).size.width,
+                         child: Card(
+                           color: textground,
+                           child: Container(
+                             padding: EdgeInsets.all(10),
+                             margin: EdgeInsets.all(10),
+                             child: Column(
+                               mainAxisAlignment: MainAxisAlignment.start,
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               children: [
+                                 Text('More Information',
+                                 style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                                 SizedBox(height: 10,),
+                                 IntrinsicHeight(
+                                   child: Row(
+                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                     children: [ 
+                                       Icon(Icons.water_damage,color: Colors.white,),
+                                       Column(
+                                         children: [
+                                           Text('Humidity'),
+                                           Text('${snapshot.data['main']['humidity']}%'),
+                                         ],
+                                       ),
+
+                                       VerticalDivider(color: Colors.white,),
+
+                                       Icon(Icons.remove_red_eye,color: Colors.white,),
+                                       Column(
+                                         children: [
+                                           Text('Visibility'),
+                                           Text('${snapshot.data['visibility']}'),
+                                         ],
+                                       ),
+
+                                       VerticalDivider(color: Colors.white,),
+
+                                       Icon(Icons.water_damage,color: Colors.white,),
+                                       Column(
+                                         children: [
+                                           Text('Country'),
+                                           Text('${snapshot.data['sys']['country']}'),
+                                         ],
+                                       ),
+                                     ],
+                                   ),
+                                 ),
+                                SizedBox(height: 20,),
+                                 IntrinsicHeight(
+                                   child: Row(
+                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                     children: [
+                                       infoSpace(Icons.speed,'Wind Speed' , '${snapshot.data['wind']['speed']}'),
+                                       VerticalDivider(color: Colors.white,),
+                                       infoSpace(Icons.rotate_90_degrees_ccw,'Wind Deg' , '${snapshot.data['wind']['deg']}'),
+                                     ],
+                                   ),
+                                 ),
+
+                                 SizedBox(height: 20,),
+
+                                 IntrinsicHeight(
+                                   child: Row(
+                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                     children: [
+                                       infoSpace(Icons.wb_sunny,'Sunset' , sun.format(DateTime.fromMillisecondsSinceEpoch(snapshot.data['sys']['sunset']*1000))),
+                                       VerticalDivider(color: Colors.white,),
+                                       infoSpace(Icons.nights_stay,'Sunrise' , sun.format(DateTime.fromMillisecondsSinceEpoch(snapshot.data['sys']['sunrise']*1000))),
+                                     ],
+                                   ),
+                                 ),
+
+                               ],
+
+                             ),
+
+                           ),
+
+
+                         ),
+                       ),
+                       SizedBox(height: 20,),
+
                      ],
                    ),
                  );
@@ -255,15 +364,40 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     print('http://openweathermap.org/img/wn/'+weatherData['weather'][0]['icon']+'@2x.png');
+      //   },
+      // ),
+    );
+  }
+  Widget infoSpace(IconData icons,String topText,String bottomText){
+    return Container(
+      width: MediaQuery.of(context).size.width/2-50,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Icon(icons,color: Colors.white,),
+          Container(
+            width: MediaQuery.of(context).size.width/5,
+            child: Column(
+              children: [
+                Text(topText),
+                Text(bottomText)
+              ],
+            ),
+          )
+        ],
       ),
     );
   }
+
 
   @override
   void initState() {
     super.initState();
     permission();
   }
+
 }
+
