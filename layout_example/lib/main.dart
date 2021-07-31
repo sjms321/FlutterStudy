@@ -11,7 +11,7 @@ class Layout extends StatefulWidget {
 }
 
 class _LayoutState extends State<Layout> {
-
+//진위여부에 따라 코드 활성화 move application 적용하기
   bool star = true;
   int count = 41;
 
